@@ -51,22 +51,28 @@ export const getProductosId = async (req, res) => {
 
 export const postProductos = async (req, res) => {
   try {
-    const { name, description, price_cost, price_sale, quantity, image } = req.body;
+    const { nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia } = req.body;
+    console.log('Datos recibidos en el POST:', { nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia });
+
     const [result] = await pool.query("SELECT MAX(id) AS last_id FROM productos");
     const lastId = result[0].last_id || 0;
     const newId = lastId + 1;
+    console.log('Nuevo ID generado:', newId);
+
     const [insertResult] = await pool.query(
       "INSERT INTO productos (id, nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [newId, name, description, price_cost, price_sale, quantity, image]
+      [newId, nombre || '', descripcion || '', precio_costo || 0, precio_venta || 0, cantidad || 0, fotografia || '']
     );
+    console.log('Resultado de la inserción:', insertResult);
+
     if (insertResult.affectedRows > 0) {
       res.json({ message: "Producto Agregado", id: newId });
     } else {
       res.status(404).json({ message: "No se ingresó el producto" });
     }
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Algo salió mal' });
+    console.error('Error en postProductos:', error);
+    return res.status(500).json({ message: "Algo salió mal", error: error.message });
   }
 };
 
@@ -76,7 +82,6 @@ export const putProductos = async (req, res) => {
     const { nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia } = req.body;
     console.log('Datos recibidos en el PUT:', { id, nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia });
 
-    // Obtener el producto actual para usar los valores existentes como fallback
     const [rows] = await pool.query("SELECT * FROM productos WHERE id = ?", [id]);
     console.log('Producto actual en la base de datos:', rows);
     if (rows.length <= 0) {
@@ -112,7 +117,6 @@ export const putProductos = async (req, res) => {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
 
-    // Obtener el producto actualizado para devolverlo en la respuesta
     const [updatedRows] = await pool.query("SELECT * FROM productos WHERE id = ?", [id]);
     console.log('Producto después de la actualización:', updatedRows);
     res.json(updatedRows[0]);
