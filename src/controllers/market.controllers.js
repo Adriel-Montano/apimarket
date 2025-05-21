@@ -72,34 +72,46 @@ export const postProductos = async (req, res) => {
 export const putProductos = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price_cost, price_sale, quantity, image } = req.body;
+    const { nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia } = req.body;
+
+    // Obtener el producto actual para usar los valores existentes como fallback
+    const [rows] = await pool.query("SELECT * FROM productos WHERE id = ?", [id]);
+    if (rows.length <= 0) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    const currentProducto = rows[0];
+    const updatedProducto = {
+      nombre: nombre !== undefined ? nombre : currentProducto.nombre,
+      descripcion: descripcion !== undefined ? descripcion : currentProducto.descripcion,
+      precio_costo: precio_costo !== undefined ? precio_costo : currentProducto.precio_costo,
+      precio_venta: precio_venta !== undefined ? precio_venta : currentProducto.precio_venta,
+      cantidad: cantidad !== undefined ? cantidad : currentProducto.cantidad,
+      fotografia: fotografia !== undefined ? fotografia : currentProducto.fotografia,
+    };
 
     const [result] = await pool.query(
       "UPDATE productos SET nombre = ?, descripcion = ?, precio_costo = ?, precio_venta = ?, cantidad = ?, fotografia = ? WHERE id = ?",
-      [name, description, price_cost, price_sale, quantity, image, id]
+      [
+        updatedProducto.nombre,
+        updatedProducto.descripcion,
+        updatedProducto.precio_costo,
+        updatedProducto.precio_venta,
+        updatedProducto.cantidad,
+        updatedProducto.fotografia,
+        id,
+      ]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
-    res.json({ message: "Producto actualizado" });
+    
+    // Obtener el producto actualizado para devolverlo en la respuesta
+    const [updatedRows] = await pool.query("SELECT * FROM productos WHERE id = ?", [id]);
+    res.json(updatedRows[0]);
   } catch (error) {
-    return res.status(500).json({ message: 'Algo salió mal' });
+    console.error(error);
+    return res.status(500).json({ message: "Algo salió mal" });
   }
 };
-
-export const deleteProductos = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const [result] = await pool.query("DELETE FROM productos WHERE id = ?", [id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Producto no encontrado" });
-    }
-    res.json({ message: "Producto eliminado" });
-  } catch (error) {
-    return res.status(500).json({ message: 'Algo salió mal' });
-  }
-};
-// aver
