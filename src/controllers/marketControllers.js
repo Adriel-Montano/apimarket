@@ -54,6 +54,10 @@ export const postProductos = async (req, res) => {
     const { nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia } = req.body;
     console.log('Datos recibidos en el POST:', { nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia });
 
+    // Verificar el estado de la tabla antes de la inserción
+    const [currentProducts] = await pool.query("SELECT * FROM productos");
+    console.log('Productos actuales en la base de datos:', currentProducts);
+
     const [result] = await pool.query("SELECT MAX(id) AS last_id FROM productos");
     const lastId = result[0].last_id || 0;
     const newId = lastId + 1;
