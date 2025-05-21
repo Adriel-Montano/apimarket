@@ -66,9 +66,15 @@ export const postProductos = async (req, res) => {
     console.log('Resultado de la inserción:', insertResult);
 
     if (insertResult.affectedRows > 0) {
+      // Verificar que el producto se haya guardado correctamente
+      const [insertedProduct] = await pool.query("SELECT * FROM productos WHERE id = ?", [newId]);
+      console.log('Producto insertado en la base de datos:', insertedProduct);
+      if (insertedProduct.length === 0) {
+        return res.status(500).json({ message: "Producto no encontrado después de la inserción" });
+      }
       res.json({ message: "Producto Agregado", id: newId });
     } else {
-      res.status(404).json({ message: "No se ingresó el producto" });
+      res.status(500).json({ message: "No se ingresó el producto" });
     }
   } catch (error) {
     console.error('Error en postProductos:', error);
