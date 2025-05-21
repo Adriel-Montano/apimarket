@@ -129,12 +129,26 @@ export const putProductos = async (req, res) => {
 export const deleteProductos = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await pool.query("DELETE FROM productos WHERE id = ?", [id]);
+    const parsedId = parseInt(id); // Convertir id a número entero
+    console.log(`Intentando eliminar producto con ID: ${parsedId}`); // Log para depuración
+
+    // Verificar si el producto existe antes de eliminar
+    const [existingProduct] = await pool.query("SELECT * FROM productos WHERE id = ?", [parsedId]);
+    console.log('Producto encontrado antes de eliminar:', existingProduct);
+
+    if (existingProduct.length === 0) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    const [result] = await pool.query("DELETE FROM productos WHERE id = ?", [parsedId]);
+    console.log('Resultado de la eliminación:', result);
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
     res.json({ message: "Producto eliminado" });
   } catch (error) {
-    return res.status(500).json({ message: 'Algo salió mal' });
+    console.error('Error al eliminar producto:', error);
+    return res.status(500).json({ message: 'Algo salió mal', error: error.message });
   }
 };
