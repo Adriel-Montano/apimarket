@@ -1,4 +1,5 @@
 import pool from '../config.js';
+
 export const getUsuarios = async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT * FROM usuarios");
@@ -106,12 +107,25 @@ export const putProductos = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
-    
+
     // Obtener el producto actualizado para devolverlo en la respuesta
     const [updatedRows] = await pool.query("SELECT * FROM productos WHERE id = ?", [id]);
     res.json(updatedRows[0]);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Algo salió mal" });
+  }
+};
+
+export const deleteProductos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await pool.query("DELETE FROM productos WHERE id = ?", [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+    res.json({ message: "Producto eliminado" });
+  } catch (error) {
+    return res.status(500).json({ message: 'Algo salió mal' });
   }
 };
