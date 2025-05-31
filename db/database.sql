@@ -1,33 +1,94 @@
-CREATE DATABASE IF NOT EXISTS market;
-USE market;
-
--- Tabla de usuarios
-CREATE TABLE usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    correo VARCHAR(100) NOT NULL UNIQUE,
-    clave VARCHAR(255) NOT NULL,
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Tabla categorías
+CREATE TABLE categorias (
+    id_categoria INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion TEXT
 );
 
--- Tabla de productos
+-- Tabla proveedores
+CREATE TABLE proveedores (
+    id_proveedor INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    contacto VARCHAR(100),
+    telefono VARCHAR(15),
+    email VARCHAR(100)
+);
+
+-- Tabla productos
 CREATE TABLE productos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_producto INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
-    precio_costo DECIMAL(10, 2) NOT NULL,
-    precio_venta DECIMAL(10, 2) NOT NULL,
-    cantidad INT NOT NULL,
-    fotografia VARCHAR(255), -- Aquí puedes almacenar la URL o ruta de la fotografía
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    precio_costo DECIMAL(10,2) NOT NULL,
+    precio_venta DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL,
+    fotografia VARCHAR(255),
+    id_proveedor INT,
+    id_categoria INT,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor),
+    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
 );
--- Ejemplo de inserción de datos
-INSERT INTO usuarios (nombre, correo, contraseña)
-VALUES 
-('Ricardo', 'ricardo.andrade@example.com', '123456'),
-('Juan', 'juan.perez@example.com', '654321');
 
--- Inserción de datos de ejemplo en la tabla productos
-INSERT INTO productos (nombre, descripcion, precio_costo, precio_venta, cantidad, fotografia)
-VALUES 
-('manzana verde', 'manzana de china', 10.50, 15.00, 100, 'https://static.vecteezy.com/system/resources/thumbnails/012/086/172/small/green-apple-with-green-leaf-isolated-on-white-background-vector.jpg')
+-- Tabla empleados (reemplaza usuarios, sin google_id)
+CREATE TABLE empleados (
+    id_empleado INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    clave VARCHAR(255) NOT NULL, -- Encriptada con bcrypt
+    rol ENUM('administrador', 'vendedor') NOT NULL
+);
+
+-- Tabla clientes
+CREATE TABLE clientes (
+    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    telefono VARCHAR(15),
+    email VARCHAR(100),
+    direccion TEXT
+);
+
+-- Tabla ventas
+CREATE TABLE ventas (
+    id_venta INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_cliente INT,
+    id_empleado INT,
+    total DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
+);
+
+-- Tabla detalle_venta
+CREATE TABLE detalle_venta (
+    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
+    id_venta INT,
+    id_producto INT,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
+    FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+);
+
+-- Tabla movimientos
+CREATE TABLE movimientos (
+    id_movimiento INT PRIMARY KEY AUTO_INCREMENT,
+    id_producto INT,
+    tipo ENUM('entrada', 'salida') NOT NULL,
+    cantidad INT NOT NULL,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    motivo VARCHAR(255),
+    id_empleado INT,
+    FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
+    FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
+);
+
+-- Tabla ordenes_compra
+CREATE TABLE ordenes_compra (
+    id_orden INT PRIMARY KEY AUTO_INCREMENT,
+    id_proveedor INT,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10,2) NOT NULL,
+    estado ENUM('pendiente', 'completada', 'cancelada') NOT NULL,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)
+);

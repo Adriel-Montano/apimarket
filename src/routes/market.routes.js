@@ -1,27 +1,54 @@
 import { Router } from 'express';
-import { getUsuarios, getUsuario, getProductos, postProductos, putProductos, deleteProductos, getProductosId } from '../controllers/marketControllers.js';
+import {
+  getUsuarios,
+  login,
+  getProductos,
+  getProductosId,
+  postProductos,
+  putProductos,
+  deleteProductos,
+  getCategorias,
+  postCategoria,
+  getProveedores,
+  postProveedor,
+  postMovimiento,
+  postVenta,
+  postOrdenCompra,
+  getCierreInventario
+} from '../controllers/marketControllers.js';
+import { authMiddleware } from './middleware/auth.js';
 
 const router = Router();
 
-// Ruta para consultar usuarios
-router.get('/usuarios', getUsuarios);
+// Autenticación
+router.get('/empleados', authMiddleware, getUsuarios);
+router.post('/auth/login', login);
 
-// Ruta para consultar productos
-router.get('/productos', getProductos);
+// Productos
+router.get('/productos', authMiddleware, getProductos);
+router.get('/productos/:id', authMiddleware, getProductosId);
+router.post('/productos', authMiddleware, postProductos);
+router.put('/productos/:id', authMiddleware, putProductos);
+router.delete('/productos/:id', authMiddleware, deleteProductos);
 
-// Ruta para consultar productos por ID
-router.get('/productos/:id', getProductosId);
+// Categorías
+router.get('/categorias', authMiddleware, getCategorias);
+router.post('/categorias', authMiddleware, postCategoria);
 
-// Ruta para iniciar sesión (Login)
-router.post('/usuarios/login', getUsuario);
+// Proveedores
+router.get('/proveedores', authMiddleware, getProveedores);
+router.post('/proveedores', authMiddleware, postProveedor);
 
-// Ruta para ingresar producto
-router.post('/productos', postProductos);
+// Movimientos
+router.post('/movimientos', authMiddleware, postMovimiento);
 
-// Ruta para actualizar producto
-router.put('/productos/:id', putProductos);
+// Ventas
+router.post('/ventas', authMiddleware, postVenta);
 
-// Ruta para eliminar producto
-router.delete('/productos/:id', deleteProductos);
+// Ordenes de Compra
+router.post('/ordenes-compra', authMiddleware, postOrdenCompra);
+
+// Cierre de Inventario
+router.get('/cierre-inventario', authMiddleware, getCierreInventario);
 
 export default router;
