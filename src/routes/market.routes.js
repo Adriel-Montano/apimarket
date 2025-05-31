@@ -16,7 +16,7 @@ import {
   postOrdenCompra,
   getCierreInventario
 } from '../controllers/marketControllers.js';
-import { authMiddleware } from './middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
